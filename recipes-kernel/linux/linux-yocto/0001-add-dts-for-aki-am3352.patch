@@ -1,0 +1,154 @@
+Upstream-Status: Inappropriate [this is test code]
+From 05288b66eb5366cbdd1cb6a520f11e642e84c2c3 Mon Sep 17 00:00:00 2001
+From: Yutaka KOBAYASHI <kobayuta@gmail.com>
+Date: Thu, 16 Jan 2025 00:19:34 +0000
+Subject: [PATCH] add dts for aki-am3352
+
+---
+ arch/arm/boot/dts/ti/omap/Makefile       |   3 +-
+ arch/arm/boot/dts/ti/omap/am3352-aki.dts | 119 +++++++++++++++++++++++
+ 2 files changed, 121 insertions(+), 1 deletion(-)
+ create mode 100644 arch/arm/boot/dts/ti/omap/am3352-aki.dts
+
+diff --git a/arch/arm/boot/dts/ti/omap/Makefile b/arch/arm/boot/dts/ti/omap/Makefile
+index d2b590004fed..8ae893ec48c1 100644
+--- a/arch/arm/boot/dts/ti/omap/Makefile
++++ b/arch/arm/boot/dts/ti/omap/Makefile
+@@ -117,7 +117,8 @@ dtb-$(CONFIG_SOC_AM33XX) += \
+ 	am335x-sbc-t335.dtb \
+ 	am335x-sl50.dtb \
+ 	am335x-wega-rdk.dtb \
+-	am335x-osd3358-sm-red.dtb
++	am335x-osd3358-sm-red.dtb \
++	am3352-aki.dtb
+ dtb-$(CONFIG_SOC_AM43XX) += \
+ 	am43x-epos-evm.dtb \
+ 	am437x-cm-t43.dtb \
+diff --git a/arch/arm/boot/dts/ti/omap/am3352-aki.dts b/arch/arm/boot/dts/ti/omap/am3352-aki.dts
+new file mode 100644
+index 000000000000..f6cd0ffe9fb7
+--- /dev/null
++++ b/arch/arm/boot/dts/ti/omap/am3352-aki.dts
+@@ -0,0 +1,119 @@
++// SPDX-License-Identifier: GPL-2.0-only
++
++#include "am335x-boneblack.dts"
++
++&pruss_tm {
++	status = "disabled";
++};
++
++/* SPI Flash */
++&am33xx_pinmux {
++	spi1_pins: pinmux_spi_gpio {
++		pinctrl-single,pins = <
++			AM33XX_PADCONF(AM335X_PIN_MCASP0_ACLKX, PIN_INPUT_PULLUP, MUX_MODE3)     /* sck */
++			AM33XX_PADCONF(AM335X_PIN_MCASP0_AXR0, PIN_INPUT_PULLUP, MUX_MODE3)       /* miso */
++			AM33XX_PADCONF(AM335X_PIN_MCASP0_FSX, PIN_INPUT_PULLUP, MUX_MODE3)       /* mosi */
++			AM33XX_PADCONF(AM335X_PIN_MCASP0_AHCLKR, PIN_INPUT_PULLUP, MUX_MODE3)    /* /cs */
++		>;
++	};
++
++	uart1_pins: pinmux_uart1_pins {
++		pinctrl-single,pins = <
++			AM33XX_PADCONF(AM335X_PIN_UART1_RXD, PIN_INPUT_PULLUP, MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_UART1_TXD, PIN_OUTPUT_PULLDOWN, MUX_MODE0)
++		>;
++	};
++
++	leds_pins: pinmux_led_gpio {
++		pinctrl-single,pins = <
++			AM33XX_PADCONF(AM335X_PIN_GPMC_ADVN_ALE, PIN_OUTPUT_PULLUP, MUX_MODE7)
++			AM33XX_PADCONF(AM335X_PIN_GPMC_OEN_REN, PIN_OUTPUT_PULLUP, MUX_MODE7)
++			AM33XX_PADCONF(AM335X_PIN_GPMC_WEN, PIN_OUTPUT_PULLUP, MUX_MODE7)
++			AM33XX_PADCONF(AM335X_PIN_GPMC_BEN0_CLE, PIN_OUTPUT_PULLUP, MUX_MODE7)
++		>;
++	};	
++};
++
++&spi1{
++	pinctrl-names = "default";
++	pinctrl-0 = <&spi1_pins>;
++	status = "okay";
++	ti,pindir-d0-out-d1-in;
++
++	serial_flash: m25p80@0 {
++		compatible = "jedec,spi-nor";
++		spi-max-frequency = <48000000>;
++		reg = <0x0>;
++		m25p,fast-read;
++		status = "okay";
++		#address-cells = <1>;
++		#size-cells = <1>;
++	};
++};
++
++&uart1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart1_pins>;
++
++	status = "okay";
++};
++
++&usb0 {
++	dr_mode = "host";
++};
++
++&gpio1 {
++	wsun-en-hog {
++		gpio-hog;
++		gpios = <21 GPIO_ACTIVE_HIGH>;
++		output-high;
++		line-name = "WSUN_EN";
++	};
++
++	modem-en-hog {
++		gpio-hog;
++		gpios = <18 GPIO_ACTIVE_HIGH>;
++		output-high;
++		line-name = "MODEM_EN";
++	};
++};
++
++
++/ {
++	/delete-node/ leds;
++
++	leds {
++		pinctrl-names = "default";
++		pinctrl-0 = <&leds_pins>;
++
++		compatible = "gpio-leds";
++
++		led0 {
++			label = "user0";
++			gpios = <&gpio2 4 GPIO_ACTIVE_LOW>;
++			linux,default-trigger = "none";
++			default-state = "off";
++		};
++
++		led1 {
++			label = "user1";
++			gpios = <&gpio2 3 GPIO_ACTIVE_LOW>;
++			linux,default-trigger = "none";
++			default-state = "off";
++		};
++
++		led2 {
++			label = "user2";
++			gpios = <&gpio2 2 GPIO_ACTIVE_LOW>;
++			linux,default-trigger = "none";
++			default-state = "off";
++		};
++
++		led3 {
++			label = "user3";
++			gpios = <&gpio2 5 GPIO_ACTIVE_LOW>;
++			linux,default-trigger = "none";
++			default-state = "off";
++		};
++	};
++};
+-- 
+2.46.1
+
